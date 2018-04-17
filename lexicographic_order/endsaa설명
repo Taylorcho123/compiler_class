@@ -1,0 +1,34 @@
+1. 프로그래밍 아이디어 설명
+2. 손으로 쓴 프로그램 소스 리스트 및 소스 설명
+
+--
+1. 프로그래밍 아이디어 설명
+
+3번 코드가 2번의 코드와 다른부분은 read_n_check()함수에서 입력받은 문자열의 마지막 문자와 마지막에서 2번째 문자 모두가 'a'인지 아닌지 검사하는 코드로 바뀌었다는 점이다. 그리고 이 함수가 'a'의 개수를 리턴하는 것이 아닌, 문자열 마지막의 두개의 'a'가 있다면 1(True) 를, 그렇지 않다면 0(False)를 리턴한다는 점이다. 
+
+2. 손으로 쓴 프로그램 소스 리스트 및 소스 설명
+
+read_n_check()함수와 메인함수의 조건문 부분 빼고는 2번과 같은 코드이기 때문에, 바뀐 부분만 설명하려고 한다.
+
+먼저 read_n_check()함수 : 
+int read_n_check(char* tobe)
+{
+    unsigned int is_aa=0;
+
+    if(tobe[strlen(tobe)-1] == 'a' && tobe[strlen(tobe)-2] == 'a'){
+	return 1;
+    }
+-> 위의 조건문에서 입력받은 문자열(tobe)의 마지막 문자(strlen(tobe)-1)와 마지막에서 두번째 문자(strlen(tobe)-2)가 모두 'a'인지 검사해서, 만약 그렇다면 1(True)를 리턴한다. 
+
+    return 0;
+}
+
+
+그 다음으로 main()함수에서 바뀐 부분을 살펴보면 : 
+	if(read_n_check(input_str) == 1) {
+	    printf("accept: %s\n", input_str);
+	}
+	else {    
+	    printf("reject: %s\n", input_str);
+	}
+read_n_check()함수에서 리턴1을 했다면, 해당 문자열은 'aa'로 끝나기 때문에 accept되고, 그렇지 않다면 reject된다.
