@@ -1,0 +1,140 @@
+     1	%{
+     2	#include <stdio.h>
+     3	#include <stdlib.h>  
+     4	%}
+-> 헤더 파일을 추가한다.
+
+
+     6	%option yylineno
+-> yylineno 옵션을 이용하면 라인의 번호를 출력할 수 있다.
+
+
+  8	%%
+-> %%로 시작해서 %%로 끝나는 구간에서 
+해당 lexical analyzer의 규칙을 정할 수 있다.
+
+
+     9	"void"		printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "VOID", yytext);		    // keywords
+    10	"int"		printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "INT", yytext);
+    11	"if"		printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "IF", yytext); 
+    12	"else"		printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "ELSE", yytext); 
+    13	"while"		printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "WHILE", yytext); 
+    14	"return"	printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "RETURN", yytext); 
+    15	"input"		printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "INPUT", yytext);
+    16	"output"	printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "OUTPUT", yytext);
+    17	
+    18	"+"		printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "PLUS", yytext); 		    // special symbols
+    19	"-"		printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "MINUS", yytext); 
+    20	"*"		printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "MULTIPLY", yytext);
+    21	"/"		printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "DIVIDE", yytext);
+    22	"<"		printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "LT", yytext); 
+    23	"<="		printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "LE", yytext);
+    24	">"		printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "GT", yytext);
+    25	">="		printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "GE", yytext);
+    26	"=="		printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "EQ", yytext);
+    27	"!="		printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "NE", yytext); 
+    28	"="		printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "ASSIGN", yytext); 
+    29	","		printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "COMMA", yytext);
+    30	";"		printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "SEMICOLON", yytext); 
+    31	"("		printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "LPAR", yytext); 
+    32	")"		printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "RPAR", yytext);
+    33	"{"		printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "LBRACE", yytext);
+    34	"}"		printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "RBRACE", yytext);
+    35	"["		printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "LBRACKET", yytext);
+    36	"]"		printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "RBRACKET", yytext); 
+-> keywords와 special symbols가 입력되면 어떻게 출력되어야 하는지 규칙을 만들어 둔다.
+모든 출력은 "line=%d, token=%s, lexeme=\"%s\"\n" 형식을 따른다.
+
+
+
+
+    38	[a-zA-Z_][a-zA-Z0-9_]*	    printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "ID", yytext);	    // identifier
+-> identifier의 형식을 정의한다. 
+identifier로는 대소문자나 underscore('_')의 결합 혹은 대소문자나 underscore, 정수의 결합이 가능하다.
+
+
+
+
+    40	[0-9]*			    printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "NUM", yytext);	    // numbers
+-> 정수형 숫자는 numbers이다.
+실수형은 구분하지 않는다.
+
+
+
+
+    42	[ \t\r\n]+			    	;   // whitespace
+-> 공백문자는 무시한다.
+
+
+
+
+
+    44	"//".*					;   // comments
+    45	[/][*][^*]*[*]+([^*/][^*]*[*]+)*[/]	;
+-> comments도 무시된다.
+이 떄의 comments형식은 C언어 문법에서의 comments와 같다.
+// ~~ 는 한줄짜리 comment이고
+/* ~~ */는 한줄 이상이어도 상관 없다.
+
+
+
+
+    47	.			    printf("line=%d, token=%s, lexeme=\"%s\"\n", yylineno, "UNDEFINED", yytext); 	    //error
+-> 그 이외의 문자가 입력되었을 때는 정의되지 않았다( undefined)고 출력해준다.
+
+
+
+
+    48	%%
+-> 규칙을 다 정의했다.
+%%로 규칙 정의의 끝을 선언한다.
+
+
+
+
+    50	extern int yylex();
+    51	int yywrap(void) {
+    52	    return 1;
+    53	}
+-> lex에서 정의된 yylex()함수는 입력된 문자가 정의되었는지 확인하고 만약 리턴 값이 정의되었다면 이 함수에서 리턴해주는 역할을 하는 것으로 추정된다. 
+-> yywrap()함수가 없다면 오류가 난다.
+
+
+
+    55	int main(int argc, char* argv[])
+-> 메인 함수의 매개변수로 커맨드라인의 아규먼트를 받는다.
+
+
+
+
+    57	    if(argc == 2) {
+    58		if(!(yyin = fopen(argv[1], "r"))) {
+    59		    perror("Error ");
+    60		    return -1;
+    61		}
+-> 커맨드라인에서 옵션으로는 1개만을 주어야 한다. 
+만약 커맨드라인에서 사용자가 입력한 파일이 존재하지 않거나 열수가 없다면 에러를 띄우고 프로그램을 종료한다.
+
+
+
+
+    66	    else { 
+    67		printf("Usage: scanner [filename]\n");
+    68	    }
+-> 사용자가 커맨드라인에서 파일 명을 입력하지 않았거나, 2개 이상을 입력했다면 사용법을 출력해주고 프로그램을 종료한다.
+
+
+
+
+    62		yyset_in(yyin);
+-> lex에서 정의된 함수를 이용해 파일 입출력을 한다.
+
+
+
+    63		yylex();
+-> 입력된 문자가 %% ~~~ %% 구간에서 정의된 규칙에 명시되어있는지 확인하는 함수로 추정된다.
+
+
+
+    64		fclose(yyin);
+-> 파일 포인터를 해제한다.

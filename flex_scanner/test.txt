@@ -1,0 +1,16 @@
+/* This is just a test file */
+
+#include <stdio.h>
+
+int main(void)
+{
+    int foo=3;	    // a test comment
+
+    for(int i=0; i<5; i++) {
+	if(foo == 3) {
+	    printf("Hello Lex!\n");
+	}
+    }
+
+    return 0;
+}

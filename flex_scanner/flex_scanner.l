@@ -1,8 +1,6 @@
 %{
 #include <stdio.h>
-#include <stdlib.h>
-
-int num_line = 1;    
+#include <stdlib.h>  
 %}
 
 %option yylineno
@@ -56,15 +54,13 @@ int yywrap(void) {
 
 int main(int argc, char* argv[])
 {
-    int token;
-
     if(argc == 2) {
 	if(!(yyin = fopen(argv[1], "r"))) {
 	    perror("Error ");
 	    return -1;
 	}
 	yyset_in(yyin);
-	token = yylex();
+	yylex();
 	fclose(yyin);
     }
     else { 
