@@ -1,0 +1,263 @@
+/* ====================================================================== */
+%{
+
+/* C언어 헤더 및 상수 혹은 전역 변수 선언 */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+
+/* ====================================================================== */
+
+extern int source_line_no;	// scanner.l에 선언된 코드 라인 세는 전역변수.
+extern int yylex();
+extern FILE *yyin;
+extern char *yytext;
+
+/* ====================================================================== */
+
+int yyerror(char *message);	// syntax error 났을 때 호출되는 함수.
+
+%}
+
+/* ====================================================================== */
+
+/* bison 선언.
+%token으로 시작되는 것은 C-minus언어의 terminal들의 선언이다. 
+한글자로 되어있는 특수문자는 %token으로 선언하고 make명령어로 컴파일 시, 
+제대로 인식되지 못하는 버그가 있기 때문에 
+아래 non-terminal의 syntax rule 작성할 때 직접 문자를 적어 넣었다. */
+
+%token VOID
+%token INT
+%token IF
+%token ELSE
+%token WHILE
+%token RETURN
+%token INPUT
+%token OUTPUT
+
+%token LT
+%token LE
+%token GT
+%token GE
+%token EQ
+%token NE
+
+%token ID
+%token NUM
+
+%%
+
+/* ====================================================================== */
+
+/* 아래는 non-terminal의 syntax rule. 
+C언어로 작성된 문맥 자유 언어의 규칙. 
+parse tree라고 생각하면 쉽다. 
+대문자로 적혀진 단어는 terminal, 소문자로 적혀진 단어는 non-terminal */
+
+program
+        : var_declaration_list fun_declaration_list
+;
+
+var_declaration_list
+        : var_declaration_list var_declaration
+        | empty
+;
+
+fun_declaration_list
+        : fun_declaration_list fun_declaration 
+        | fun_declaration
+;
+
+var_declaration
+        : type_specifier var ';'
+        | type_specifier var '[' num ']' ';'
+;
+
+type_specifier
+        : INT 
+        | VOID
+;
+
+var
+        : ID
+;
+
+num 
+        : NUM
+;
+
+fun_declaration 
+        : type_specifier var '(' params ')' '{' local_declarations statement_list '}'
+;
+params 
+        : param_list 
+        | VOID
+;
+
+param_list 
+        : param_list ',' param 
+        | param
+;
+
+param 
+        : type_specifier var 
+        | type_specifier var '[' ']'
+;
+
+local_declarations 
+        : local_declarations var_declaration 
+        | empty
+;
+
+statement_list 
+        : statement_list statement 
+        | empty
+;
+
+statement 
+        : compound_stmt 
+        | expression_stmt 
+        | selection_stmt
+        | iteration_stmt 
+        | funcall_stmt 
+        | return_stmt 
+        | input_stmt
+        | output_stmt
+;
+
+compound_stmt 
+        : '{' statement_list '}'
+;
+
+expression_stmt 
+        : expression ';'
+        | ';'
+;
+
+expression 
+        : var '=' expression
+        | var '[' expression ']' '=' expression
+        | simple_expression
+;
+
+simple_expression 
+        : additive_expression relop additive_expression
+        | additive_expression
+;
+
+relop : LT | LE | GT | GE | EQ | NE 
+;
+
+additive_expression 
+        : additive_expression addop term 
+        | term
+;
+
+addop 
+        : '+'
+        | '-'
+;
+
+term 
+        : term mulop factor 
+        | factor
+;
+
+mulop 
+        : '*' 
+        | '/'
+;
+
+factor 
+        : '(' expression ')' 
+        | var | var '[' expression ']'
+        | num | '+' num | '-' num
+;
+
+selection_stmt 
+        : IF '(' expression ')' statement ELSE statement
+;
+
+iteration_stmt 
+        : WHILE '(' expression ')' statement
+;
+
+funcall_stmt 
+        : var '='call
+        | var '[' expression ']' '=' call
+        | call
+;
+
+call 
+        : var '(' args ')'
+;
+
+args 
+        : arg_list
+;
+
+arg_list 
+        : arg_list ',' expression 
+        | expression
+;
+return_stmt 
+        : RETURN ';' 
+        | RETURN expression ';'
+;
+
+input_stmt 
+        : INPUT var ';'
+        | INPUT var '[' expression ']' ';'
+;
+
+output_stmt 
+        : OUTPUT expression ';'
+;
+
+empty 
+        :
+;
+
+
+%%
+
+/* ====================================================================== */
+
+/* 위의 syntax rule에 적용되지 않는 syntax error가 났을 때, 
+아래의 yyerror()함수가 호출된다.
+
+"syntax error"라는 문자열이 yyerror()의 매개변수로 전달되고,
+전역변수인 source_line_no와 yytext가 출력된다.
+이 둘은 각각 코드의 에러가 발생한 라인 번호와, 에러를 유발한 해당 문자를 의미한다. */
+
+int yyerror(char *message)
+{
+  fprintf(stderr, "line %d: %s at \"%s\"\n", source_line_no, message, yytext);
+}
+
+/* ====================================================================== */
+
+/* main()함수에서는 command line arguments를 받을 때 발생할 수 있는 에러에 대해
+기본적인 에러처리를 수행할 수 있다. */
+
+int main(int argc, char *argv[])
+{
+  if(argc != 2) {
+    fprintf(stderr, "usage: parser file\n");
+    exit(1);
+  }
+  yyin = fopen(argv[1], "r");
+  if(yyin == NULL) {
+    fprintf(stderr, "%s: %s\n", argv[1], strerror(errno));
+    exit(1);
+  }
+  yyparse();
+
+  return 0;
+}
+
+/* ====================================================================== */
+

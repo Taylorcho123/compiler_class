@@ -1,0 +1,65 @@
+/* ====================================================================== */
+
+%{
+
+#include "parser.h"
+#include <string.h>
+
+
+/* 코드의 라인 수를 출력해주는 변수는 scanner.l의 전역변수로 선언되어 있다. */
+
+char *lex;                      /* current lexeme of ID or NUM */
+int source_line_no = 1;
+
+/* ====================================================================== */
+
+%}
+
+/* %%와 %% 사이에 확장 정규식을 의미하는 lexical rule을 정의한다. */
+
+%%
+
+"void"   {return VOID;}
+"int"    {return INT;}
+"if"     {return IF;}
+"else"   {return ELSE;}
+"while"  {return WHILE;}
+"return" {return RETURN;}
+"input"  {return INPUT;}
+"output" {return OUTPUT;}
+
+"+"  {return '+';}
+"-"  {return '-';}
+"*"  {return '*';}
+"/"  {return '/';}
+
+"<"  {return LT;}
+"<=" {return LE;}
+"==" {return EQ;}
+"!=" {return NE;}
+">"  {return GT;}
+">=" {return GE;}
+
+":" {return ':';}
+";" {return ';';}
+"," {return ',';}
+"=" {return '=';}
+"{" {return '{';}
+"}" {return '}';}
+"[" {return '[';}
+"]" {return ']';}
+"(" {return '(';}
+")" {return ')';}
+
+[A-Za-z_][A-Za-z0-9_]* {return ID;}
+[0-9][0-9]*  {return NUM;}
+
+"//".*  ;					// comments나 개행문자를 포함한 특수문자를 
+[/][*][^*]*[*]+([^*/][^*]*[*]+)*[/]     ;		// 인식하지만, lex나  yacc에 전달해주는 
+[ \t]   {;}					// 리턴 값이 없다. 
+. {}						// 즉, 인식하고 아무런 행동도 하지 않는다. 
+[\n] {source_line_no++; }		// 개행문자를 인식했을 때 라인 수가 증가된다. 
+
+%%
+
+/* ====================================================================== */
